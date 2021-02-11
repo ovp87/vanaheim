@@ -7,8 +7,6 @@ use Illuminate\Session\SessionManager;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Arrayable;
 use Money\{Currency, Money};
-
-use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Vanaheim\Core\Contracts\BuyableItem;
 use Vanaheim\Core\Exceptions\UnsupportedCurrencyException;
 
