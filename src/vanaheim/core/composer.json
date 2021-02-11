@@ -1,0 +1,33 @@
+{
+	"name": "vanaheim/core",
+	"description": "a simpler ecommerce package",
+	"version": "dev-master",
+	"authors": [
+		{
+			"name": "Ola Valø Pettersen",
+			"email": "oulaa@outlook.com"
+		}
+	],
+	"require": {
+		"php": "^8.0.2",
+		"illuminate/support": "^8",
+		"illuminate/database": "^8",
+		"illuminate/bus": "^8",
+		"illuminate/console": "^8",
+		"illuminate/pipeline": "^8",
+		"ext-json": "*",
+		"moneyphp/money": "^3.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"Vanaheim\\Core\\": "src/"
+		}
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Vanaheim\\Core\\Providers\\CoreServiceProvider"
+			]
+		}
+	}
+}
