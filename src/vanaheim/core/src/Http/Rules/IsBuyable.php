@@ -5,34 +5,38 @@ namespace Vanaheim\Core\Http\Rules;
 use Exception;
 use Illuminate\Contracts\Validation\Rule;
 use Vanaheim\Core\Contracts\BuyableItem;
+use Vanaheim\Core\Models\Buyable;
 
 class IsBuyable implements Rule
 {
-    /**
-     * Determine if the validation rule passes.
-     *
-     * @param  string  $attributeIndex
-     * @param  mixed  $type
-     * @return bool
-     */
-    public function passes($attributeIndex, $type)
+
+    private int $id;
+    private string $type;
+
+    public function __construct($id, $type)
+    {
+        $this->id = $id;
+        $this->type = $type;
+    }
+
+    public function passes($attribute, $value): bool
     {
         try {
-            $resolveAble = resolve($type) && app($type) instanceof BuyableItem;
+            $resolveAble = resolve($this->type) && app($this->type) instanceof BuyableItem;
         } catch (Exception $e) {
             return false;
         }
 
-        return $resolveAble;
+        $modelExists = Buyable::where('buyable_type', $this->type)
+            ->where('buyable_id', $this->id)
+            ->exists();
+
+
+        return $resolveAble && $modelExists;
     }
 
-    /**
-     * Get the validation error message.
-     *
-     * @return string
-     */
-    public function message()
+    public function message(): string
     {
-        return 'Type is not a valid known buyable object.';
+        return 'Type and Id is not a valid buyable object.';
     }
 }

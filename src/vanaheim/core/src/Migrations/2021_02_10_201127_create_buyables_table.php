@@ -15,7 +15,7 @@ class CreateBuyablesTable extends Migration
     {
         Schema::create('buyables', function (Blueprint $table) {
             $table->id();
-            $table->string("url");
+            $table->string("slug");
             $table->morphs('buyable');
             $table->timestamps();
         });

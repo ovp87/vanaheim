@@ -3,35 +3,28 @@
 namespace Vanaheim\Core\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Vanaheim\Core\Http\Requests\CartAddRequest;
 use Vanaheim\Core\Models\Buyable;
-use Vanaheim\Core\Models\Product;
 use Vanaheim\Core\Services\Cart\Cart;
 
 class CartController extends Controller
 {
-    public function add(Request $request)
+    public function add(CartAddRequest $request): JsonResponse
     {
         $cart = app(Cart::class);
 
-        $buyable = Buyable::where('buyable_type', $request->type)
-            ->where('buyable_id', $request->id)
+        $buyable = Buyable::where('buyable_type', $request->get('type'))
+            ->where('buyable_id', $request->get('id'))
             ->with('item')
             ->first();
 
-        $cart->addItem($buyable->item, $request->get('quantity', 1));
+        $cart->addItem(
+            $buyable->item,
+            (int) $request->get('quantity', 1)
+        );
 
         return response()->json($cart);
 
-    }
-
-    public function createDemo()
-    {
-        Product::firstOrCreate([
-            'title' => 'My first product',
-            'price' => 10000,
-        ])->buyable()->firstOrCreate([
-            'url' => 'products/my-first-product'
-        ]);
     }
 }

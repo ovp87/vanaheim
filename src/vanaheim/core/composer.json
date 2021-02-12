@@ -10,6 +10,7 @@
 	],
 	"require": {
 		"php": "^8.0.2",
+        "laravel/sanctum": "^2.9",
 		"illuminate/support": "^8",
 		"illuminate/database": "^8",
 		"illuminate/bus": "^8",
