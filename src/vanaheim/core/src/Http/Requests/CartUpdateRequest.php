@@ -9,12 +9,17 @@ class CartUpdateRequest extends FormRequest
 {
     public function rules()
     {
-        return [
+        $rules = [
             'items' => 'required|array',
-            'items.*.id' => 'required|integer',
             'items.*.quantity' => 'required|integer|min:1',
-            'items.*.type' => ['required', new IsBuyable],
+            'items.*.type' => ['required', 'string'],
         ];
+
+        foreach ($this->request->get('items') as $index => $value) {
+            $rules['items.*.id'] = [new IsBuyable($value['id'], $value['type']), 'required', 'integer'];
+        }
+
+        return $rules;
     }
 
 }

@@ -5,8 +5,10 @@ namespace Vanaheim\Core\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Vanaheim\Core\Http\Requests\CartAddRequest;
+use Vanaheim\Core\Http\Requests\CartUpdateRequest;
 use Vanaheim\Core\Models\Buyable;
 use Vanaheim\Core\Services\Cart\Cart;
+use Vanaheim\Core\Services\Cart\CartUpdate;
 
 class CartController extends Controller
 {
@@ -26,5 +28,25 @@ class CartController extends Controller
 
         return response()->json($cart);
 
+    }
+
+    public function update(CartUpdateRequest $request): JsonResponse
+    {
+        $cart = app(Cart::class);
+        $update = new CartUpdate();
+
+        foreach ($request->get('items', []) as $item) {
+
+            $buyable = Buyable::where('buyable_type', $item['type'])
+                ->where('buyable_id', $item['id'])
+                ->with('item')
+                ->first();
+
+            $update->add($buyable->item, (int) $item['quantity']);
+        }
+
+        $cart->update($update);
+
+        return response()->json($cart);
     }
 }

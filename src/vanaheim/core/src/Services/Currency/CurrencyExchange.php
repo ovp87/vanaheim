@@ -5,7 +5,7 @@ namespace Vanaheim\Core\Services\Currency;
 use Money\Converter;
 use Money\Currencies\ISOCurrencies;
 use Money\Exchange\FixedExchange;
-use Vanaheim\Core\Exceptions\UnsupportedCurrencyException;
+use Vanaheim\Core\Exceptions\UnsupportedCurrency;
 
 class CurrencyExchange
 {
@@ -26,6 +26,6 @@ class CurrencyExchange
             );
         }
 
-        throw new UnsupportedCurrencyException($iso4217);
+        throw new UnsupportedCurrency($iso4217);
     }
 }

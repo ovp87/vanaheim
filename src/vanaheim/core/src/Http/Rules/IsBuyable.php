@@ -22,8 +22,9 @@ class IsBuyable implements Rule
     public function passes($attribute, $value): bool
     {
         try {
-            $resolveAble = resolve($this->type) && app($this->type) instanceof BuyableItem;
+            $resolveAbleType = resolve($this->type) && app($this->type) instanceof BuyableItem;
         } catch (Exception $e) {
+            report($e);
             return false;
         }
 
@@ -31,8 +32,7 @@ class IsBuyable implements Rule
             ->where('buyable_id', $this->id)
             ->exists();
 
-
-        return $resolveAble && $modelExists;
+        return $resolveAbleType && $modelExists;
     }
 
     public function message(): string

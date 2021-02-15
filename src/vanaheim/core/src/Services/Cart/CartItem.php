@@ -5,7 +5,7 @@ namespace Vanaheim\Core\Services\Cart;
 use Money\Currency;
 use Money\Money;
 use Vanaheim\Core\Contracts\BuyableItem;
-use Vanaheim\Core\Exceptions\UnsupportedCurrencyException;
+use Vanaheim\Core\Exceptions\UnsupportedCurrency;
 use Vanaheim\Core\Services\Currency\CurrencyExchange;
 use Illuminate\Contracts\Support\Arrayable;
 
@@ -42,7 +42,7 @@ class CartItem implements Arrayable
     /**
      * @param Currency $currency
      * @return Money
-     * @throws UnsupportedCurrencyException
+     * @throws UnsupportedCurrency
      */
     public function getVat(Currency $currency): Money
     {
@@ -62,7 +62,7 @@ class CartItem implements Arrayable
     /**
      * @param Currency $currency
      * @return Money
-     * @throws UnsupportedCurrencyException
+     * @throws UnsupportedCurrency
      */
     public function getSubTotal(Currency $currency): Money
     {

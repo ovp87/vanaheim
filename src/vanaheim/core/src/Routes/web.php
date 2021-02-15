@@ -1,12 +1,7 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use Vanaheim\Core\Models\User;
-use Illuminate\Support\Facades\DB;
-
 
 Route::middleware(['web'])->group(function() {
 
@@ -15,9 +10,12 @@ Route::middleware(['web'])->group(function() {
         dd(Artisan::output());
     });
 
+    // get list of all supported locales, dd(ResourceBundle::getLocales(''));
+
     Route::get('token', function () {
         return response(json_encode(csrf_token()));
     });
 
     Route::post('cart/add', 'Vanaheim\Core\Http\Controllers\CartController@add');
+    Route::post('cart/update', 'Vanaheim\Core\Http\Controllers\CartController@update');
 });

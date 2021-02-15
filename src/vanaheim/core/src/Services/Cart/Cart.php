@@ -6,9 +6,10 @@ use ArithmeticError;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Arrayable;
-use Money\{Currency, Money};
+use Money\{Currencies\ISOCurrencies, Currency, Formatter\DecimalMoneyFormatter, Formatter\IntlMoneyFormatter, Money};
+use NumberFormatter;
 use Vanaheim\Core\Contracts\BuyableItem;
-use Vanaheim\Core\Exceptions\UnsupportedCurrencyException;
+use Vanaheim\Core\Exceptions\UnsupportedCurrency;
 
 class Cart implements Arrayable {
 
@@ -17,6 +18,8 @@ class Cart implements Arrayable {
     protected Currency $currency;
     protected Money $total;
     protected Money $vat;
+    protected string $localizedTotal;
+    protected string $localizedVat;
 
     protected bool $requiresShipping = false;
 
@@ -26,34 +29,28 @@ class Cart implements Arrayable {
         $this->resolveSession();
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
-            'items' => $this->getItems(),
+            'items' => $this->items,
             'currency' => $this->currency,
             'requiresShipping' => $this->requiresShipping,
             'total' => $this->total->getAmount(),
             'vat' => $this->vat->getAmount(),
+            'localizedTotal' => $this->getLocalizedTotal(),
+            'localizedVat' => $this->getLocalizedVat(),
         ];
     }
 
-
-    public function getItems(): Collection
+    public function update(CartUpdate $update)
     {
-        return $this->items;
-    }
+        $this->items = collect();
 
-    public function getCartItemFor(BuyableItem $item)
-    {
-        return $this->items->filter(function(CartItem $cartItem) use ($item) {
-            return $cartItem->getIdentifier() === $item->getIdentifier()
-                && $cartItem->getType() === $item->getType();
-        })->first();
-    }
+        foreach ($update->toArray() as $updateItem) {
+            $this->insertNewRow($updateItem['buyableItem'], $updateItem['quantity']);
+        }
 
-    public function getCurrency(): Currency
-    {
-        return $this->currency;
+        $this->bindSession();
     }
 
     public function addItem(BuyableItem $item, int $quantity = 1)
@@ -68,6 +65,43 @@ class Cart implements Arrayable {
         }
 
         $this->bindSession();
+    }
+
+    public function getCurrency(): Currency
+    {
+        return $this->currency;
+    }
+
+    public function getLocalizedVat(): string
+    {
+        $currencies = new ISOCurrencies();
+
+        $numberFormatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+        $moneyFormatter = new IntlMoneyFormatter($numberFormatter, $currencies);
+
+        $this->localizedVat = $moneyFormatter->format($this->vat);
+
+        return $this->localizedVat;
+    }
+
+    public function getLocalizedTotal(): string
+    {
+        $currencies = new ISOCurrencies();
+
+        $numberFormatter = new NumberFormatter('no', NumberFormatter::CURRENCY);
+        $moneyFormatter = new IntlMoneyFormatter($numberFormatter, $currencies);
+
+        $this->localizedTotal = $moneyFormatter->format($this->total);
+
+        return $this->localizedTotal;
+    }
+
+    protected function getCartItemFor(BuyableItem $item)
+    {
+        return $this->items->filter(function(CartItem $cartItem) use ($item) {
+            return $cartItem->getIdentifier() === $item->getIdentifier()
+                && $cartItem->getType() === $item->getType();
+        })->first();
     }
 
     protected function insertNewRow(BuyableItem $item, int $quantity)
@@ -95,16 +129,23 @@ class Cart implements Arrayable {
 
     protected function aggregate()
     {
+        $this->requiresShipping = false;
         try {
             $this->total = new Money(0, $this->currency);
             $this->vat = new Money(0, $this->currency);
 
             $this->items->each(function(CartItem $item) {
+
+                if ($item->getBuyable()->getRequiresShipping()) {
+                    $this->requiresShipping = true;
+                }
+
                 $this->total = $this->total->add($item->getSubTotal($this->currency));
                 $this->vat = $this->vat->add($item->getVat($this->currency));
+
             });
 
-        } catch (UnsupportedCurrencyException $exception) {
+        } catch (UnsupportedCurrency $exception) {
             report($exception);
             $this->createSession();
         }
@@ -152,6 +193,6 @@ class Cart implements Arrayable {
     protected function hasSession(): bool
     {
         return $this->sessionManager->has('cart.items')
-            || $this->sessionManager->has('cart.currency');
+            && $this->sessionManager->has('cart.currency');
     }
 }

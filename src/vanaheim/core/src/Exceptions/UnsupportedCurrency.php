@@ -4,7 +4,7 @@ namespace Vanaheim\Core\Exceptions;
 
 use Exception;
 
-class UnsupportedCurrencyException extends Exception
+class UnsupportedCurrency extends Exception
 {
     public function __construct($iso4217)
     {
