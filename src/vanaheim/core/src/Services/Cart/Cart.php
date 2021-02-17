@@ -21,6 +21,8 @@ class Cart implements Arrayable {
     protected string $localizedTotal;
     protected string $localizedVat;
 
+    protected CartPersonalia $personalia;
+
     protected bool $requiresShipping = false;
 
     public function __construct()
@@ -32,6 +34,7 @@ class Cart implements Arrayable {
     public function toArray(): array
     {
         return [
+            'personalia' => $this->personalia->toArray(),
             'items' => $this->items,
             'currency' => $this->currency,
             'requiresShipping' => $this->requiresShipping,
@@ -44,11 +47,17 @@ class Cart implements Arrayable {
 
     public function update(CartUpdate $update)
     {
-        $this->items = collect();
+        $updateItems = $update->toArray()['items'] ?? [];
 
-        foreach ($update->toArray() as $updateItem) {
+        if (!empty($updateItems)) {
+            $this->items = collect();
+        }
+
+        foreach ($updateItems as $updateItem) {
             $this->insertNewRow($updateItem['buyableItem'], $updateItem['quantity']);
         }
+
+        $this->personalia = $update->getPersonalia();
 
         $this->bindSession();
     }
@@ -163,8 +172,19 @@ class Cart implements Arrayable {
     {
         if ($this->hasSession()) {
             try {
-                $this->items = unserialize($this->sessionManager->get('cart.items'));
-                $this->currency = new Currency(unserialize($this->sessionManager->get('cart.currency')));
+
+                $this->items = unserialize(
+                    $this->sessionManager->get('cart.items')
+                );
+
+                $this->currency = new Currency(
+                    unserialize($this->sessionManager->get('cart.currency'))
+                );
+
+                $this->personalia = $this->sessionManager->has('cart.personalia')
+                    ? unserialize($this->sessionManager->get('cart.personalia'))
+                    : new CartPersonalia([]);
+
             } catch (\Exception $e) {
                 report($e);
                 $this->createSession();
@@ -186,6 +206,7 @@ class Cart implements Arrayable {
     protected function bindSession()
     {
         $this->aggregate();
+        $this->sessionManager->put('cart.personalia', serialize($this->personalia));
         $this->sessionManager->put('cart.items', serialize($this->items));
         $this->sessionManager->put('cart.currency', serialize($this->currency->getCode()));
     }

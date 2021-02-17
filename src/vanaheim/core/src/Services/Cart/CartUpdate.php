@@ -8,25 +8,37 @@ use Vanaheim\Core\Contracts\BuyableItem;
 class CartUpdate implements Arrayable
 {
     protected array $items = [];
-    protected array $quantities = [];
 
-    public function add(BuyableItem $buyableItem, int $quantity)
+    protected CartPersonalia $personalia;
+
+    public function __construct()
     {
-        $this->items[] = $buyableItem;
-        $this->quantities[] = $quantity;
+        $this->personalia = new CartPersonalia([]);
+    }
+
+    public function addBuyable(BuyableItem $buyableItem, int $quantity)
+    {
+        $this->items[] = [
+            'buyableItem' => $buyableItem,
+            'quantity' => $quantity
+        ];
+    }
+
+    public function getPersonalia(): CartPersonalia
+    {
+        return $this->personalia;
+    }
+
+    public function setPersonalia(CartPersonalia $personalia)
+    {
+        $this->personalia = $personalia;
     }
 
     public function toArray(): array
     {
-        $arr = [];
-
-        foreach ($this->items as $key => $value) {
-            $arr[] = [
-                'buyableItem' => $value,
-                'quantity' => $this->quantities[$key]
-            ];
-        }
-
-        return $arr;
+        return [
+            'items' => $this->items,
+            'personalia' => $this->personalia->toArray(),
+        ];
     }
 }

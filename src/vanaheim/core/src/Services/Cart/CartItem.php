@@ -12,7 +12,7 @@ use Illuminate\Contracts\Support\Arrayable;
 class CartItem implements Arrayable
 {
     private string $rowId;
-    private $id;
+    private mixed $id;
     private int $quantity;
     private BuyableItem $buyable;
 
